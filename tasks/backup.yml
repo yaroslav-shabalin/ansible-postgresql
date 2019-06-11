@@ -31,7 +31,7 @@
     owner: postgres
     group: postgres
     backup: yes
-  notify: Reload PostgreSQL
+  notify: Restart PostgreSQL
 
 - name: Schedule backups
   cron:
