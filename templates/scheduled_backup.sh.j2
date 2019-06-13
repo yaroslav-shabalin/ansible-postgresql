@@ -10,6 +10,7 @@ mailto='{{ postgresql_backup_mail_recipient }}'
 mutex={{ postgresql_backup_local_dir }}/scheduledmutex
 rotate='{{ postgresql_backup_rotate | default("True") }}'
 xlog_dir='{{ postgresql_version is version_compare("10", ">=") | ternary("pg_wal", "pg_xlog") }}'
+port='{{ postgresql_conf | selectattr("port", "defined") | map(attribute = "port") | list | first | default("5432") }}'
 
 [ '{{ postgresql_backup_remote_rsync_path | default("None") }}' != 'None' ] && remote_rsync='--rsync-path={{ postgresql_backup_remote_rsync_path | default("None") }}' || remote_rsync=''
 
@@ -22,7 +23,7 @@ handler()
         (echo "execuing $command failed with code $ret:" ; echo "$out") | mail -s "$server: Postgres scheduled backup failed" $mailto
         rm -f $mutex
         if [ "$backup_started" = 1 ]; then
-            echo "SELECT pg_stop_backup();" | psql
+            echo "SELECT pg_stop_backup();" | psql --port $port
         fi
         exit 1
     else
@@ -35,7 +36,7 @@ handler()
 psql_handler()
 {
     sql=$@
-    out=`echo "$sql" | psql 2>&1`
+    out=`echo "$sql" | psql --port $port 2>&1`
     ret=$?
     if [ $ret -ne 0 ]; then
         (echo "executing $sql failed with code $ret:" ; echo "$out") | mail -s "$server: Postgres scheduled backup failed" $mailto
