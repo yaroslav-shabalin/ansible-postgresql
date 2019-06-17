@@ -85,7 +85,7 @@ backup_started=1
 handler mkdir -p $data/wal
 
 # begin the backup
-handler rsync $remote_rsync -rptg --delete --delete-delay --exclude $xlog_dir $data/ $dir
+handler rsync $remote_rsync -rptg --delete --delete-delay --exclude $xlog_dir/* $data/ $dir
 
 # tell postgres we're done
 psql_handler "SELECT pg_stop_backup();"
